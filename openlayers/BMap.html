@@ -1,0 +1,97 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">  
+<meta name="apple-mobile-web-app-capable" content="yes">  
+<title>百度地图</title>  
+  <link rel="stylesheet" href="http://openlayers.org/en/v3.15.1/css/ol.css" type="text/css">      
+   <style type="text/css">  
+        html, body, #map{  
+           padding:0;  
+           margin:0;  
+            height:100%;  
+         width:100%;  
+       }  
+       #locate{  
+           width:20px;  
+           height: 25px;  
+           background: url("img/marker.png");  
+            position: absolute;  
+        top: 100px;  
+         left: 10px;  
+          z-index: 99;  
+       }  
+       #locate:hover{  
+           cursor: pointer;  
+        }  
+   </style>  
+    <script src="http://openlayers.org/en/v3.15.1/build/ol.js"></script>  
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=wNdy48s7V1izbLL0ziswArXq"></script>  
+    <script type="text/javascript">  
+        var map, view, vector;  
+        function init(){  
+//          var attribution = new ol.Attribution({  
+//                  html:'<a href="http://lzugis.d152.ptzygj.com/">LZUGIS</a>'  
+//          });  
+           var coor = ol.proj.transform([103.847, 36.0473], 'EPSG:4326', 'EPSG:3857');  
+            view = new ol.View({  
+                    center:coor,  
+                    zoom:4  
+            });  
+           vector = new ol.layer.Vector({  
+                style: new ol.style.Style({  
+                    image: new ol.style.Icon(({  
+                        anchor: [0.5, 46],  
+                        anchorXUnits: 'fraction',  
+                        anchorYUnits: 'pixels',  
+                     src: 'img/slider.png'  
+                    }))  
+               })  
+            });  
+           map = new ol.Map({  
+                    target:'map',  
+                    layers:[  
+                            new ol.layer.Tile({  
+                                    source:new ol.source.XYZ({  
+                                          // attributions:[attribution],  
+                                           url:"http://t2.tianditu.com/DataServer?T=vec_w&x={x}&y={y}&l={z}"  
+                                    })  
+                            }),          
+                            new ol.layer.Tile({  
+                                   source:new ol.source.XYZ({  
+                                            url: "http://t2.tianditu.com/DataServer?T=cva_w&x={x}&y={y}&l={z}"  
+                                   })          
+                            }),  
+                        vector  
+                   ],  
+                    view:view  
+            });  
+        }  
+       function showLocation(){  
+             var geolocation = new BMap.Geolocation();  
+                geolocation.getCurrentPosition(function(r){  
+                    if(this.getStatus() == BMAP_STATUS_SUCCESS){  
+                        console.log(r);  
+                        var locate = ol.proj.transform([r.point.lng, r.point.lat], 'EPSG:4326', 'EPSG:3857');  
+                        view.setCenter(locate);  
+                        view.setZoom(18);  
+                        var feature = new ol.Feature({  
+                            geometry: new ol.geom.Point(locate)  
+                        });  
+                        var source = new ol.source.Vector({  
+                           features:[feature]  
+                       });  
+                        vector.setSource(source);  
+                   }  else {                          alert("定位失败，失败原因为："+this.getStatus());  
+                   }  
+               },{enableHighAccuracy: true});  
+           }  
+         
+   </script>  
+</head>  
+<body onload="init()">  
+    <div id="map">  
+        <div id="locate" title="点击定位" onclick="showLocation()"></div>  
+    </div>  
+.</body>  
